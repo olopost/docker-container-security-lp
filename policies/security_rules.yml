@@ -1,0 +1,81 @@
+---
+profile:
+  name: "Security Rules"
+  description: "Set of rules focus on security aspects of Dockerfiles"
+
+line_rules:
+  FROM:
+    paramSyntaxRegex: /.+/
+    rules:
+      -
+        label: "not latest"
+        regex: /latest/
+        level: "warn"
+        message: "A FROM instruction line rule to check that there is a tag and it is not latest"
+        description: "please ensure you get the mastering of image"
+
+  LABEL:
+    paramSyntaxRegex: /.+/
+    rules:
+      -
+        label: "maintainer is present"
+        regex: /maintainer=".+"/
+        inverse_rule: true
+        level: "warn"
+        message: "A LABEL instruction line rule to verify that the maintainer label is present and not empty"
+        description: "please ensure you provider maintainer"
+  ADD:
+    paramSyntaxRegex: /^~?([\w-.~:/?#\[\]\\\/*@!$&'()*+,;=.{}"]+[\s]*)+$/
+    rules:
+      -
+        label: "no_add_without_https"
+        regex: /http\:\/\/.*/
+        level: "warn"
+        message: "ADD is using a non-HTTPS url as source"
+        description: "Using a URL without HTTPS can lead to MITM attacks on your infrastructure."
+
+  RUN:
+    paramSyntaxRegex: /.+/
+    rules:
+      -
+        label: "no_run_without_https"
+        regex: /http\:\/\/.*/g
+        level: "warn"
+        message: "RUN is referencing a non-HTTPS url"
+        description: "Using a URL without HTTPS can lead to MITM attacks on your infrastructure."
+
+      -
+        label: "no_run_with_sudo"
+        regex: /sudo/
+        level: "warn"
+        message: "Sudo has dangerous side effects"
+        description: "Using sudo may lead to privilige escalation"
+
+      -
+        label: "privileged_run_container"
+        regex: /privileged/
+        level: "warn"
+        message: "a privileged run container is allowed access to host devices"
+        description: "Does this run need to be privileged?"
+        reference_url: 
+          - "http://docs.docker.com/engine/reference/run/#"
+          - "runtime-privilege-and-linux-capabilities"
+
+      -
+        label: "installing_ssh"
+        regex: /openssh-server/
+        level: "warn"
+        message: "installing SSH in a container is not recommended"
+        description: "Do you really need SSH in this image?"
+        reference_url: "https://github.com/jpetazzo/nsenter"	
+
+
+  HEALTHCHECK:
+    paramSyntaxRegex: /.+/
+    rules:
+      -
+        label: "curl is not present"
+        regex: /curl/
+        level: "warn"
+        message: "A HEALTHCHECK instruction line rule to verify that it does not include a curl command"
+        description: "no curl in healthcheck"

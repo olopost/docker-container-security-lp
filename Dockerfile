@@ -1,5 +1,6 @@
 FROM alpine:3.12.1
 
+LABEL maintainer="samuel@meyn.fr"
 
 RUN apk add --no-cache \
     curl \
@@ -22,6 +23,11 @@ RUN curl -L \
     && addgroup -Sg 1000 hugo \
     && adduser -SG hugo -u 1000 -h /src hugo /usr/local/src
 
+USER hugo
+
 WORKDIR /src
 
 EXPOSE 1313
+
+HEALTHCHECK --interval=10s --timeout=10s --start-period=15s \
+  CMD hugo env || exit 1
